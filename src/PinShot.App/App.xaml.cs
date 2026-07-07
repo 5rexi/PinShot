@@ -1,11 +1,9 @@
 using Microsoft.UI.Dispatching;
-using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using PinShot.App.Models;
 using PinShot.App.Services;
 using PinShot.App.Views;
 using PinShot.Core;
-using Windows.Graphics;
 
 namespace PinShot.App;
 
@@ -18,7 +16,6 @@ public partial class App : Application
     private PinShotState _state = new(AppSettings.Default.StartEnabled);
     private TrayService? _tray;
     private MainWindow? _window;
-    private Window? _keeperWindow;
 
     public App()
     {
@@ -34,16 +31,7 @@ public partial class App : Application
 
             _window = new MainWindow(ToggleEnabled);
             _window.SetState(_state);
-            _window.WindowClosed += (_, _) => _window = null;
             _window.Activate();
-
-            // 创建不可见守护窗口，确保主窗口关闭后应用继续运行
-            _keeperWindow = new Window();
-            _keeperWindow.AppWindow.Move(new PointInt32(-32000, -32000));
-            _keeperWindow.AppWindow.Resize(new SizeInt32(1, 1));
-            var presenter = OverlappedPresenter.Create();
-            presenter.SetBorderAndTitleBar(false, false);
-            _keeperWindow.AppWindow.SetPresenter(presenter);
 
             DispatcherQueue dispatcher = DispatcherQueue.GetForCurrentThread();
             _tray = new TrayService(dispatcher, () => _state, ToggleEnabled, ShowSettings, Quit);
@@ -72,17 +60,10 @@ public partial class App : Application
 
     private void ShowSettings()
     {
-        if (_window is null)
-        {
-            _window = new MainWindow(ToggleEnabled);
-            _window.SetState(_state);
-            _window.WindowClosed += (_, _) => _window = null;
-            _window.Activate();
-        }
-        else
-        {
-            _window.Activate();
-        }
+        _window ??= new MainWindow(ToggleEnabled);
+        _window.SetState(_state);
+        _window.AppWindow.Show();
+        _window.Activate();
     }
 
     private async void OnHotkeyPressed(object? sender, EventArgs e)
@@ -115,7 +96,6 @@ public partial class App : Application
             pin.Close();
         }
 
-        _keeperWindow?.Close();
         _window?.Close();
         Environment.Exit(0);
     }

@@ -11,8 +11,6 @@ public sealed partial class MainWindow : Window
     private readonly Action _toggleEnabled;
     private bool _isUpdating;
 
-    public event EventHandler? WindowClosed;
-
     public MainWindow(Action toggleEnabled)
     {
         _toggleEnabled = toggleEnabled;
@@ -23,8 +21,7 @@ public sealed partial class MainWindow : Window
 
         AppWindow.SetIcon("Assets/AppIcon.ico");
         AppWindow.Resize(new SizeInt32(560, 400));
-
-        Closed += (_, _) => WindowClosed?.Invoke(this, EventArgs.Empty);
+        AppWindow.Closing += OnAppWindowClosing;
 
         _isUpdating = true;
         AutoStartSwitch.IsOn = AutoStartService.IsEnabled();
@@ -59,5 +56,11 @@ public sealed partial class MainWindow : Window
         }
 
         AutoStartService.SetEnabled(AutoStartSwitch.IsOn);
+    }
+
+    private void OnAppWindowClosing(AppWindow sender, AppWindowClosingEventArgs args)
+    {
+        args.Cancel = true;
+        AppWindow.Hide();
     }
 }

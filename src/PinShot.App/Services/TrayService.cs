@@ -12,6 +12,7 @@ public sealed class TrayService : IDisposable
     private const uint CommandToggle = 1001;
     private const uint CommandSettings = 1002;
     private const uint CommandQuit = 1003;
+    private const uint CommandAutoStart = 1004;
 
     private readonly DispatcherQueue _dispatcher;
     private readonly Action _exit;
@@ -86,8 +87,6 @@ public sealed class TrayService : IDisposable
         data.szTip = "PinShot";
 
         NativeMethods.ShellNotifyIcon(NativeMethods.NIM_ADD, ref data);
-        data.uTimeoutOrVersion = NativeMethods.NOTIFYICON_VERSION_4;
-        NativeMethods.ShellNotifyIcon(NativeMethods.NIM_SETVERSION, ref data);
     }
 
     private void UpdateIcon(string tooltip)
@@ -141,8 +140,11 @@ public sealed class TrayService : IDisposable
         try
         {
             var toggleText = _getState().IsEnabled ? "Pause F1 pinning" : "Enable F1 pinning";
+            NativeMethods.AppendMenu(menu, NativeMethods.MF_STRING, CommandSettings, "Open Settings");
             NativeMethods.AppendMenu(menu, NativeMethods.MF_STRING, CommandToggle, toggleText);
-            NativeMethods.AppendMenu(menu, NativeMethods.MF_STRING, CommandSettings, "Settings");
+            NativeMethods.AppendMenu(menu, NativeMethods.MF_SEPARATOR, 0, null);
+            var autoStartFlags = AutoStartService.IsEnabled() ? NativeMethods.MF_STRING | NativeMethods.MF_CHECKED : NativeMethods.MF_STRING;
+            NativeMethods.AppendMenu(menu, autoStartFlags, CommandAutoStart, "Startup");
             NativeMethods.AppendMenu(menu, NativeMethods.MF_SEPARATOR, 0, null);
             NativeMethods.AppendMenu(menu, NativeMethods.MF_STRING, CommandQuit, "Quit PinShot");
 
@@ -178,6 +180,13 @@ public sealed class TrayService : IDisposable
                 break;
             case CommandSettings:
                 _dispatcher.TryEnqueue(() => _showSettings());
+                break;
+            case CommandAutoStart:
+                _dispatcher.TryEnqueue(() =>
+                {
+                    var newState = !AutoStartService.IsEnabled();
+                    AutoStartService.SetEnabled(newState);
+                });
                 break;
             case CommandQuit:
                 _dispatcher.TryEnqueue(() => _exit());
