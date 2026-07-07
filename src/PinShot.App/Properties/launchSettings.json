@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "PinShot.App (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "PinShot.App (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+# Build output
+bin/
+obj/
+publish/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Rider / VS Code
+.idea/
+.vscode/
+
+# NuGet
+*.nupkg
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test results
+tests/**/bin/
+tests/**/obj/
