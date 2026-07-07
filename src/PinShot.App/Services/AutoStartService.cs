@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using System.Diagnostics;
 
 namespace PinShot.App.Services;
 
@@ -38,8 +39,11 @@ public static class AutoStartService
 
             if (enabled)
             {
-                var exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                key.SetValue(AppName, exePath);
+                var exePath = Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty;
+                if (!string.IsNullOrEmpty(exePath))
+                {
+                    key.SetValue(AppName, exePath);
+                }
             }
             else
             {
